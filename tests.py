@@ -1,64 +1,101 @@
 from creatures import *
-    
-def testCreatures():
-    try:
-        b = DeadBody(10,10,10,10,10)
-    except:
-        b = DeadBody(-3,10,10,10,10)
-    else:
-        assert True, "Dead body with positive hp creature created"
 
-    try:
-        sc = SaneCreature(0,0,0,0)
-    except:
-        sc = SaneCreature(1,1,0,0)
-    else:
-        assert True, "Sane creature with <=0 health"
-        
-    try:
-        n = Necromancer(0,0,0,0,0,1)
-    except:
-        n = Necromancer(20,0,0,0,0,1)
-    else:
-        assert True, "negative hp creature created"
-        
-    try:
-        s1 = Skeleton(10,10,10,10,0,-1,10)
-    except:
-        s1 = Skeleton(10,10,10,10,0,10,10)
-    else:
-        assert True, "negative ammo created"
-        
-    try:
-        z = Zombie(10,10,10,10,0,-10)
-    except:
-        z = Zombie(10,10,10,10,0,10)
-    else:
-        assert True, "negative weapon lvl created"
-        
-    assert (s1.haveAmmo()), "ammo not foundet"
-    s2 = Skeleton(10,10,10,10,0,0,10)
-    assert (not s2.haveAmmo()), "ammo foundet when theres none"
-    assert (s1.getValue()==30), "getValue() test"
-    
-    assert s1.groupid==0, "possesed creature not in a 0 team"
-    assert b.groupid==-1, "dead body not in a -1 team"
-    assert sc.groupid>0, "sane creatur in a <=0 team"
 
-    sold=Soldier(1,2,3,3,4,5,6)
-    assert sold.getValue()==15, "error at counting of solder value"
-    assert sold.haveAmmo(), "ammo counting error"
+def test_creatures_init_system(hp, shield):
+    unit = Unit()
+    unit = Unit(10)
+    unit = Unit(1, 0)
+    unit = Unit(10000000000, 1000000000000)
 
+    for i in range(len(hp)):
+        try:
+            unit = Unit(hp[i], shield[i])
+        except ValueError:
+            ...
+        else:
+            ValueError("Существо с отрицательными щитами или неположительным здоровьем создано")
+
+
+def test_creatures_hit_system(hp, shield, hit, expected_hp, expected_shield, expected_is_dead):
+    for i in range(len(hp)):
+        unit = Unit(hp[i], shield[i])
+        unit.hit(hit[i])
+        assert unit.hp == expected_hp[i], "ошибка в рачёте здоровья при ударе"
+        assert unit.shield == expected_shield[i], "ошибка в рачёте щитов при ударе"
+        assert unit.is_dead() == expected_is_dead[i], "ошибка в рачёте смерти при ударе"
+
+
+def test_creatures_type_and_features_system():
+    unit = Unit()
+    unit_type = set()
+    unit_type.add(unit.type)
+
+    soldiers = list()
+    soldiers.append(Soldier("Bob0", "MasterBob"))
+    soldiers.append(LeaderSoldier("Bob1", "MasterBob"))
+    soldiers.append(CursedSoldier("Bob2", "MasterBob"))
+    soldiers.append(BlessedSoldier("Bob3", "MasterBob"))
+    s_types, s_features = set(), set()
+    for i in soldiers:
+        s_types.add(i.type)
+        s_features.add(i.feature)
+    assert (len(s_types) == 1) and (len(s_features) == 4), "Ошибка системы фич и типов для солдат"
+
+    monsters = list()
+    monsters.append(Monster())
+    monsters.append(LeaderMonster())
+    m_types, m_features = set(), set()
+    for i in monsters:
+        m_types.add(i.type)
+        m_features.add(i.feature)
+    assert (len(m_types) == 1) and (len(m_features) == 2), "Ошибка системы фич и типов для монстров"
+    assert len(unit_type | m_types | s_types) == 3, "Ошибка именования типов"
+    assert m_types.isdisjoint(s_types), "Ошибка именования типов"
+    assert (unit.type not in m_types), "Ошибка именования типов"
+    assert (unit.type not in s_types), "Ошибка именования типов"
+
+
+def test_creatures_features_exceptions():
+    s_types_with_features = [LeaderSoldier, CursedSoldier, BlessedSoldier]
+    for s in s_types_with_features:
+        try:
+            unit = s("Bob", "MasterBob", 1, 0, -1)
+        except ValueError:
+            ...
+        else:
+            raise ValueError("Тест на отрицательные фичи не выдал ошибок")
+    m_types_with_features = [LeaderMonster]
+    for m in m_types_with_features:
+        try:
+            unit = m(1, 0, -1)
+        except ValueError:
+            ...
+        else:
+            raise ValueError("Тест на отрицательные фичи не выдал ошибок")
+
+
+def test_creatures():
+    hp = [0, 0, -100, 69, 42]
+    shield = [0, 100, 0, -1, -100]
+    test_creatures_init_system(hp, shield)
+
+    hp = [10, 123, 1000, 69, 1]
+    shield = [100, 0, 0, 42, 0]
+    hit = [0, 122, 1, 13, 1]
+    expected_hp = [10, 1, 999, 69, 0]
+    expected_shield = [100, 0, 0, 29, 0]
+    expected_is_dead = [False, False, False, False, True]
+    test_creatures_hit_system(hp, shield, hit, expected_hp, expected_shield, expected_is_dead)
+
+    test_creatures_type_and_features_system()
+
+    test_creatures_features_exceptions()
+
+
+def run_tests():
     try:
-        inv = Inventor(1,1,2,2,-10,3,4,True)
-    except:
-        inv = Inventor(1,1,2,2,3,3,4,True)
+        test_creatures()
+    except Exception:
+        print("Ошибка тестирования системы")
     else:
-        assert True, "negative exp created"
-
-try:
-    testCreatures()
-except:
-    print("Ошибка тестирования системы")
-    testCreatures()
-    
+        print("Тесты пройдены успешно")

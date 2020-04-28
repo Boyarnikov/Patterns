@@ -1,195 +1,183 @@
-class Unit:
-    def __init__(self, hp, grp, spd, pwr):
-        self.health = hp
-        self.groupid = grp
-        self.speed = spd
-        self.power = pwr
-                
-    def checkDead(self):
-        return self.health>0
+class Act:
+    types = ['atk', 'def', 'heal']
 
-    def printInfo(self):
-        print(self.getInfo())
-
-    def getInfo(self):
-        info = "{} - hp, {} - spd, {} - pwr\n assigned to group {}\n"
-        return info.format(self.health,self.speed,self.power,self.groupid)
-
-
-class DeadBody(Unit):
-    def __init__(self, hp, spd, pwr, value, damagedPoints):
-        assert (hp<=0), "can not create a corpse from a dead unit"
-        Unit.__init__(self, 0, -1, 0, 0)
-        self.damagedPoints = damagedPoints-hp
-        if self.damagedPoints>20:
-            self.corpseType="dust"
-        elif self.damagedPoints>10:
-            self.corpseType="skeleton"
+    def __init__(self, string=None):
+        if string in Act.types:
+            self.type = string
         else:
-            self.corpseType="body"
-        self.corpsValue = value + spd + pwr
-        self.alive = False
-    
-    def getInfo(self):
-        info=Unit.getInfo(self)
-        info+="all that remains of the unit is " + self.corpseType + " \n "
-        info+="and its value is " + self.value + " \n "
+            self.type = None
+
+
+class Unit:
+    default_hp = 3
+    default_shield = 0
+
+    def __init__(self, hp=default_hp, shield=default_shield):
+        if hp <= 0:
+            raise ValueError("Создаётся существо с неположительным здоровьем")
+        self.hp = hp
+        if shield < 0:
+            raise ValueError("Созаётся существо с отрицательными щитами")
+        self.shield = shield
+        self.atk_slots = list()
+        self.def_slots = list()
+        self.profs = list()
+        self.type = None
+
+    def is_dead(self):
+        return self.hp <= 0
+
+    def hit(self, amount=1):
+        self.hp -= max(amount - self.shield, 0)
+        self.shield = max(0, self.shield - amount)
+
+    def set_profs(self, atk=0.50, defence=0.50, heal=0.50):
+        self.profs = dict()
+        self.profs['atk'] = atk
+        self.profs['def'] = defence
+        self.profs['heal'] = heal
+
+    def set_atk(self, stats=[None]):
+        self.atk_slots = list()
+        for i in stats:
+            self.atk_slots(Act(i))
+
+    def set_def(self, stats=[None]):
+        self.def_slots = list()
+        for i in stats:
+            self.def_slots(Act(i))
+
+    def get_data_string(self):
+        info = ''
+        info += f"Это существо имеет {self.hp} здоровья,\n"
+        info += f"{self.shield} щитов, его профессионализм: {self.profs}\n"
+        info += f"его скилы защиты: {self.def_slots}; нападения {self.atk_slots}\n"
         return info
 
 
-class PossessedCreature(Unit):
-    def __init__(self, hp, spd, pwr, pb):
-        assert (hp>0), "can not create a alive unit from hp<=0"
-        
-        Unit.__init__(self, hp, 0, spd, pwr)
-        self.alive = True
-        self.possessed = True
-        self.сreatureType="None"
-        self.possessedBonus = pb
-        
-    def getInfo(self):
-        info=Unit.getInfo(self)
-        info+="possessed being - " + self.сreatureType + "\n"
-        info+="with " + str(self.possessedBonus) + " posees bonus\n"
+class Soldier(Unit):
+    def __init__(self, name, master, hp=Unit.default_hp, shield=Unit.default_shield):
+        Unit.__init__(self, hp, shield)
+        self.name = name
+        self.master = master
+        self.type = 'soldier'
+        self.feature = None
+
+    def get_data_string(self):
+        info = Unit.get_data_string(self)
+        info += f"Солдат {self.name} армии {self.master}\n"
         return info
 
 
-class Necromancer(PossessedCreature):
-    def __init__(self, hp, spd, pwr, pb, armor, mp):
-        PossessedCreature.__init__(self, hp, spd, pwr, pb)
-        self.сreatureType="Human"
-        assert (armor>=0), "can not have an negative level armor"
-        self.armorLevel = armor
-        self.magicPoints = mp
-        
-    def getInfo(self):
-        info=PossessedCreature.getInfo(self)
-        info+="it also wears armor - " + str(self.armorLevel) + " level\n"
-        info+="and containce - " + str(self.magicPoints) + " magic points\n"
-        return info
+class LeaderSoldier(Soldier):
+    default_init_points = 1
 
-    def getValue(self):
-        return self.armorLevel+self.magicPoints+self.possessedBonus
+    def __init__(self, name, master, hp=Unit.default_hp, shield=Unit.default_shield, init_points=default_init_points):
+        Soldier.__init__(self, name, master, hp, shield)
+        if init_points <= 0:
+            raise ValueError("Созаётся существо с неположительными очками инициативы")
+        self.init_points = init_points
+        self.feature = 'leader'
 
-
-class Skeleton(PossessedCreature):
-    def __init__(self, hp, spd, pwr, pb, armor, ammo, wlvl):
-        PossessedCreature.__init__(self, hp, spd, pwr, pb)
-        self.сreatureType="Skeleton"
-        assert (armor>=0), "can not have an negative level armor"
-        self.armorLevel = armor
-        assert (ammo>=0), "can not have an negative amount of ammo"
-        self.ammo = ammo
-        assert (wlvl>=0), "can not have an negative level of weapon"
-        self.weaponLevel=wlvl
-        
-    def getInfo(self):
-        info=PossessedCreature.getInfo(self)
-        info+="it also wears armor - " + str(self.armorLevel) + " level\n"
-        info+="have " + str(self.weaponLevel) + " level weapon\n"
-        info+="and have " + str(self.ammo) + " bones to throw\n"
-        return info
-
-    def haveAmmo(self):
-        return self.ammo>0
-
-    def getValue(self):
-        return self.armorLevel+self.ammo+self.possessedBonus+self.weaponLevel
-
-
-class Zombie(PossessedCreature):
-    def __init__(self, hp, spd, pwr, pb, armor, wlvl):
-        PossessedCreature.__init__(self, hp, spd, pwr, pb)
-        self.сreatureType="Zombie"
-        assert (armor>=0), "can not have an negative level armor"
-        self.armorLevel = armor
-        assert (wlvl>=0), "can not have an negative level of weapon"
-        self.weaponLevel=wlvl
-        
-    def getInfo(self):
-        info=PossessedCreature.getInfo(self)
-        info+="it also wears armor - " + str(self.armorLevel) + " level\n"
-        info+="and have " + str(self.weaponLevel) + " level weapon\n"
-        return info
-
-    def getValue(self):
-        return self.armorLevel+self.possessedBonus    
-
-
-class SaneCreature(Unit):
-    def __init__(self, hp, grp, spd, pwr):
-        assert (hp>0), "can not create a alive unit from hp<=0"
-        assert (grp>0), "Sane Creature can not be in <=0 team"
-        Unit.__init__(self, hp, grp, spd, pwr)
-        self.alive = True
-        self.possessed = False
-        self.сreatureType="None"
-        
-    def getInfo(self):
-        info=Unit.getInfo(self)
-        info+="Sane being - " + self.сreatureType + "\n"
+    def get_data_string(self):
+        info = Soldier.get_data_string(self)
+        info += f"Его лидерские качества дают армии {self.init_points} очков действий\n"
         return info
 
 
-class Soldier(SaneCreature):
-    def __init__(self, hp, grp, spd, pwr, armor, wlvl, ammo):
-        SaneCreature.__init__(self, hp, grp, spd, pwr)
-        self.сreatureType="Human"
-        assert (armor>=0), "can not have an negative level armor"
-        self.armorLevel = armor
-        assert (ammo>=0), "can not have an negative amount of ammo"
-        self.ammo = ammo
-        assert (wlvl>=0), "can not have an negative level of weapon"
-        self.weaponLevel=wlvl
+class Curse:
+    types = ['dead', 'damaged', 'heal', 'atk', 'def']
+    deals = ['hit_to_self', 'hit_to_teammate', 'hit_to_all', 'heal_enemy']
 
-    def haveAmmo(self):
-        return self.ammo>0
-        
-    def getInfo(self):
-        info=SaneCreature.getInfo(self)
-        info+="he also wears armor - " + str(self.armorLevel) + " level\n"
-        info+="have " + str(self.weaponLevel) + " level weapon\n"
-        info+="and have " + str(self.ammo) + " arrows\n"
+    def __init__(self, set_type=None, set_deals=None):
+        if set_type in Curse.types and set_deals in Curse.deals:
+            self.type = set_type
+            self.deals = set_deals
+        else:
+            self.type = None
+            self.deals = None
+
+
+class CursedSoldier(Soldier):
+    default_double_luck = 0.0
+
+    def __init__(self, name, master, hp=Unit.default_hp, shield=Unit.default_shield, double_luck=default_double_luck):
+        Soldier.__init__(self, name, master, hp, shield)
+        if not (0 <= double_luck <= 1):
+            raise ValueError("Созаётся существо с некорректным значением удачи")
+        self.double_luck = double_luck
+        self.curse = Curse(None, None)
+        self.feature = 'cursed'
+
+    def set_curse(self, curse=Curse()):
+        self.curse = curse
+
+    def get_data_string(self):
+        info = Soldier.get_data_string(self)
+        info += f'Этот солдат проклят, поэтому при событии "{self.curse.type}"\n'
+        info += f'произойдёт событие "{self.curse.deal}"\n'
+        info += f'Сделка с дьяволом дала ему {int(self.double_luck * 100)}% шанс повторного выполнения действия\n'
         return info
 
-    def getValue(self):
-        return self.armorLevel+self.weaponLevel+self.ammo
 
-class Inventor(SaneCreature):
-    def __init__(self, hp, grp, spd, pwr, armor, exp, money, retr):
-        SaneCreature.__init__(self, hp, grp, spd, pwr)
-        self.сreatureType="Human"
-        assert (armor>=0), "can not have an negative level armor"
-        self.armorLevel = armor
-        assert (exp>=0), "can not have an negative amount of exp"
-        self.campExperince = exp
-        assert (money>=0), "can not have an negative level of money"
-        self.moneyAmount = money
-        self.retreats = retr
-        
-    def getInfo(self):
-        info=SaneCreature.getInfo(self)
-        info+="he also wears armor - " + str(self.armorLevel) + " level\n"
-        info+="have " + str(self.campExperince) + " ex points\n"
-        info+="and " + str(self.moneyAmount) + " gold coins\n"
-        if self.retreats:
-            info+="he is reatriting to camp\n"
+class Bless:
+    types = ['def', 'atk', 'heal']
+    deals = ['heal_to_self', 'heal_to_teammate', 'heal_to_all', 'hit_enemy']
+
+    def __init__(self, set_type=None, set_deals=None):
+        if set_type in Bless.types and set_deals in Bless.deals:
+            self.type = set_type
+            self.deals = set_deals
+        else:
+            self.type = None
+            self.deals = None
+
+
+class BlessedSoldier(Soldier):
+    default_luck = 0.0
+
+    def __init__(self, name, master, hp=Unit.default_hp, shield=Unit.default_shield, luck=default_luck):
+        Soldier.__init__(self, name, master, hp, shield)
+        if not (0 <= luck <= 1):
+            raise ValueError("Созаётся существо с некорректным значением удачи")
+        self.luck = luck
+        self.bless = Bless()
+        self.feature = 'blessed'
+
+    def set_curse(self, bless=Bless()):
+        self.bless = bless
+
+    def get_data_string(self):
+        info = Soldier.get_data_string(self)
+        info += f'Этот солдат благословлён, поэтому при событии "{self.curse.type}"\n'
+        info += f'произойдёт событие "{self.curse.deal}"\n'
+        info += f'с вероятностью {int(self.double_luck * 100)}%\n'
         return info
 
-    def getValue(self):
-        return self.armorLevel+self.exp+self.money
 
-class Horse(SaneCreature):
-    def __init__(self, hp, grp, spd, pwr, armor):
-        SaneCreature.__init__(self, hp, grp, spd, pwr)
-        self.сreatureType="Horse"
-        assert (armor>=0), "can not have an negative level armor"
-        self.armorLevel = armor
-        
-    def getInfo(self):
-        info=SaneCreature.getInfo(self)
-        info+="it also wears armor - " + str(self.armorLevel) + " level\n"
+class Monster(Unit):
+    def __init__(self, hp=Unit.default_hp, shield=Unit.default_shield):
+        Unit.__init__(self, hp, shield)
+        self.type = 'monster'
+        self.feature = None
+
+    def get_data_string(self):
+        info = Unit.get_data_string(self)
+        info += f"Монстр армии зла\n"
         return info
 
-    def getValue(self):
-        return self.armorLevel
+
+class LeaderMonster(Monster):
+    default_init_points = 1
+
+    def __init__(self, hp=Unit.default_hp, shield=Unit.default_shield, init_points=default_init_points):
+        Monster.__init__(self, hp, shield)
+        if init_points <= 0:
+            raise ValueError("Созаётся существо с неположительными очками инициативы")
+        self.init_points = init_points
+        self.feature = 'leader'
+
+    def get_data_string(self):
+        info = Monster.get_data_string(self)
+        info += f"Его лидерские качества дают армии {self.init_points} очков действий\n"
+        return info
