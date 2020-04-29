@@ -1,11 +1,11 @@
 class Act:
     types = ['atk', 'def', 'heal']
 
-    def __init__(self, string=None):
+    def __init__(self, string='atk'):
         if string in Act.types:
             self.type = string
         else:
-            self.type = None
+            raise ValueError("Неверный тип действия")
 
 
 class Unit:
@@ -94,8 +94,7 @@ class Curse:
             self.type = set_type
             self.deals = set_deals
         else:
-            self.type = None
-            self.deals = None
+            raise ValueError("Неверный тип проклятья")
 
 
 class CursedSoldier(Soldier):
@@ -106,10 +105,10 @@ class CursedSoldier(Soldier):
         if not (0 <= double_luck <= 1):
             raise ValueError("Созаётся существо с некорректным значением удачи")
         self.double_luck = double_luck
-        self.curse = Curse(None, None)
+        self.curse = None
         self.feature = 'cursed'
 
-    def set_curse(self, curse=Curse()):
+    def set_curse(self, curse):
         self.curse = curse
 
     def get_data_string(self):
@@ -129,8 +128,7 @@ class Bless:
             self.type = set_type
             self.deals = set_deals
         else:
-            self.type = None
-            self.deals = None
+            raise ValueError("Неверный тип благословления")
 
 
 class BlessedSoldier(Soldier):
@@ -141,10 +139,10 @@ class BlessedSoldier(Soldier):
         if not (0 <= luck <= 1):
             raise ValueError("Созаётся существо с некорректным значением удачи")
         self.luck = luck
-        self.bless = Bless()
+        self.bless = None
         self.feature = 'blessed'
 
-    def set_curse(self, bless=Bless()):
+    def set_curse(self, bless):
         self.bless = bless
 
     def get_data_string(self):

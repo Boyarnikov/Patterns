@@ -92,9 +92,27 @@ def test_creatures():
     test_creatures_features_exceptions()
 
 
+def test_act():
+    try:
+        act = Act('invalid')
+    except ValueError:
+        ...
+    else:
+        raise ValueError("Тест на отрицательные фичи не выдал ошибок")
+    test_subjects = [Bless, Curse]
+    for sub in test_subjects:
+        try:
+            try_sub = sub('invalid', 'invalid')
+        except ValueError:
+            ...
+        else:
+            raise ValueError("Тест на отрицательные фичи не выдал ошибок")
+
+
 def run_tests():
     try:
         test_creatures()
+        test_act()
     except Exception:
         print("Ошибка тестирования системы")
     else:
