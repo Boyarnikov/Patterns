@@ -1,4 +1,4 @@
-from creatures import *
+from units import *
 
 
 def test_creatures_init_system(hp, shield):
@@ -31,10 +31,10 @@ def test_creatures_type_and_features_system():
     unit_type.add(unit.type)
 
     soldiers = list()
-    soldiers.append(Soldier("Bob0", "MasterBob"))
-    soldiers.append(LeaderSoldier("Bob1", "MasterBob"))
-    soldiers.append(CursedSoldier("Bob2", "MasterBob"))
-    soldiers.append(BlessedSoldier("Bob3", "MasterBob"))
+    soldiers.append(Soldier("Bob0"))
+    soldiers.append(LeaderSoldier("Bob1"))
+    soldiers.append(CursedSoldier("Bob2"))
+    soldiers.append(BlessedSoldier("Bob3"))
     s_types, s_features = set(), set()
     for i in soldiers:
         s_types.add(i.type)
@@ -59,7 +59,7 @@ def test_creatures_features_exceptions():
     s_types_with_features = [LeaderSoldier, CursedSoldier, BlessedSoldier]
     for s in s_types_with_features:
         try:
-            unit = s("Bob", "MasterBob", 1, 0, -1)
+            unit = s("Bob", 1, 0, -1)
         except ValueError:
             ...
         else:
@@ -74,7 +74,7 @@ def test_creatures_features_exceptions():
             raise ValueError("Тест на отрицательные фичи не выдал ошибок")
 
 
-def test_creatures():
+def test_units():
     hp = [0, 0, -100, 69, 42]
     shield = [0, 100, 0, -1, -100]
     test_creatures_init_system(hp, shield)
@@ -102,17 +102,80 @@ def test_act():
     test_subjects = [Bless, Curse]
     for sub in test_subjects:
         try:
-            try_sub = sub('invalid', 'invalid')
+            try_sub = sub('invalid', 'invalid', 'invalid')
         except ValueError:
             ...
         else:
             raise ValueError("Тест на отрицательные фичи не выдал ошибок")
 
 
+def test_profs():
+    unit = Unit()
+    unit.set_profs(dict())
+
+    profs = unit.get_profs()
+    for i in profs.keys():
+        assert profs[i] == 0, 'Базовый параметр професиональности не нулевой'
+    profs = dict(zip(ACT_TYPES, [1 for i in range(len(ACT_TYPES))]))
+    unit.set_profs(profs)
+
+    stats = [[j for i in range(len(ACT_TYPES))] for j in [-1, 2, 'a']]
+
+    for stat in stats:
+        try:
+            profs = dict(zip(ACT_TYPES, stat))
+            unit.set_profs(profs)
+        except ValueError:
+            ...
+        except TypeError:
+            ...
+        else:
+            raise ValueError("Тест на некорректные значения не выдал ошибок")
+
+
+def test_status_decorator():
+    unit1 = Unit(10, 10)
+    decorated = StatusDecorator(unit1)
+    assert isinstance(decorated, StatusDecorator), 'Ошибка обёртки в декоратор статуса'
+    unit2 = decorated.redecorate()
+    assert isinstance(unit2, type(unit1)), 'Ошибка развёртки декоратора статуса'
+    assert unit2 == unit1, 'Ошибка развёртки декоратора статуса'
+
+    unit1 = Unit(10, 10)
+    profs1 = dict(zip(ACT_TYPES, [0.5 for i in range(len(ACT_TYPES))]))
+    unit1.set_profs(profs1)
+    unit1 = StatusExhausted(unit1)
+    unit1 = StatusWeakened(unit1)
+    profs2 = dict(zip(ACT_TYPES, [0.5 for i in range(len(ACT_TYPES))]))
+    profs2['atk'] = 0.25
+    profs2['def'] = 0.25
+    unit2.set_profs(profs2)
+    assert unit1.get_profs() == unit2.get_profs(), 'Ошибка пересчёта професианализма внутри декораторов'
+
+    unit1 = Unit(10, 10)
+    profs1 = dict(zip(ACT_TYPES, [0.5 for i in range(len(ACT_TYPES))]))
+    unit1.set_profs(profs1)
+    unit1 = StatusStronger(unit1)
+    unit1 = StatusProtected(unit1)
+    profs2 = dict(zip(ACT_TYPES, [0.5 for i in range(len(ACT_TYPES))]))
+    profs2['atk'] = 0.75
+    profs2['def'] = 0.75
+    unit2.set_profs(profs2)
+    assert unit1.get_profs() == unit2.get_profs(), 'Ошибка пересчёта професианализма внутри декораторов'
+
+    unit1 = Unit(10, 10)
+    unit2 = StatusInvincible(unit1)
+    unit2.hit(100000)
+    unit2 = unit2.redecorate()
+    assert unit1 == unit2, 'Ошибка пересчёта професианализма внутри декораторов'
+
+
 def run_tests():
     try:
-        test_creatures()
+        test_units()
         test_act()
+        test_profs()
+        test_status_decorator()
     except Exception:
         print("Ошибка тестирования системы")
     else:

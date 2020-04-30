@@ -1,11 +1,5 @@
-class Act:
-    types = ['atk', 'def', 'heal']
-
-    def __init__(self, string='atk'):
-        if string in Act.types:
-            self.type = string
-        else:
-            raise ValueError("Неверный тип действия")
+from actions import *
+from status_decorators import *
 
 
 class Unit:
@@ -16,12 +10,13 @@ class Unit:
         if hp <= 0:
             raise ValueError("Создаётся существо с неположительным здоровьем")
         self.hp = hp
+        self.max_hp = hp
         if shield < 0:
             raise ValueError("Созаётся существо с отрицательными щитами")
         self.shield = shield
         self.atk_slots = list()
         self.def_slots = list()
-        self.profs = list()
+        self.profs = dict()
         self.type = None
 
     def is_dead(self):
@@ -31,11 +26,22 @@ class Unit:
         self.hp -= max(amount - self.shield, 0)
         self.shield = max(0, self.shield - amount)
 
-    def set_profs(self, atk=0.50, defence=0.50, heal=0.50):
+    def heal(self, amount=1):
+        self.hp = min(self.hp + amount, self.max_hp)
+
+    def set_profs(self, set_profs):
         self.profs = dict()
-        self.profs['atk'] = atk
-        self.profs['def'] = defence
-        self.profs['heal'] = heal
+        for act in ACT_TYPES:
+            if act in set_profs.keys():
+                if not 0 <= set_profs[act] <= 1:
+                    raise ValueError("Неверное значение професиональности передано")
+                self.profs[act] = set_profs[act]
+            else:
+                self.profs[act] = 0
+
+    def get_profs(self):
+        d = self.profs.copy()
+        return d
 
     def set_atk(self, stats=[None]):
         self.atk_slots = list()
@@ -56,10 +62,9 @@ class Unit:
 
 
 class Soldier(Unit):
-    def __init__(self, name, master, hp=Unit.default_hp, shield=Unit.default_shield):
+    def __init__(self, name, hp=Unit.default_hp, shield=Unit.default_shield):
         Unit.__init__(self, hp, shield)
         self.name = name
-        self.master = master
         self.type = 'soldier'
         self.feature = None
 
@@ -72,8 +77,8 @@ class Soldier(Unit):
 class LeaderSoldier(Soldier):
     default_init_points = 1
 
-    def __init__(self, name, master, hp=Unit.default_hp, shield=Unit.default_shield, init_points=default_init_points):
-        Soldier.__init__(self, name, master, hp, shield)
+    def __init__(self, name, hp=Unit.default_hp, shield=Unit.default_shield, init_points=default_init_points):
+        Soldier.__init__(self, name, hp, shield)
         if init_points <= 0:
             raise ValueError("Созаётся существо с неположительными очками инициативы")
         self.init_points = init_points
@@ -85,23 +90,11 @@ class LeaderSoldier(Soldier):
         return info
 
 
-class Curse:
-    types = ['dead', 'damaged', 'heal', 'atk', 'def']
-    deals = ['hit_to_self', 'hit_to_teammate', 'hit_to_all', 'heal_enemy']
-
-    def __init__(self, set_type=None, set_deals=None):
-        if set_type in Curse.types and set_deals in Curse.deals:
-            self.type = set_type
-            self.deals = set_deals
-        else:
-            raise ValueError("Неверный тип проклятья")
-
-
 class CursedSoldier(Soldier):
     default_double_luck = 0.0
 
-    def __init__(self, name, master, hp=Unit.default_hp, shield=Unit.default_shield, double_luck=default_double_luck):
-        Soldier.__init__(self, name, master, hp, shield)
+    def __init__(self, name, hp=Unit.default_hp, shield=Unit.default_shield, double_luck=default_double_luck):
+        Soldier.__init__(self, name, hp, shield)
         if not (0 <= double_luck <= 1):
             raise ValueError("Созаётся существо с некорректным значением удачи")
         self.double_luck = double_luck
@@ -119,23 +112,11 @@ class CursedSoldier(Soldier):
         return info
 
 
-class Bless:
-    types = ['def', 'atk', 'heal']
-    deals = ['heal_to_self', 'heal_to_teammate', 'heal_to_all', 'hit_enemy']
-
-    def __init__(self, set_type=None, set_deals=None):
-        if set_type in Bless.types and set_deals in Bless.deals:
-            self.type = set_type
-            self.deals = set_deals
-        else:
-            raise ValueError("Неверный тип благословления")
-
-
 class BlessedSoldier(Soldier):
     default_luck = 0.0
 
-    def __init__(self, name, master, hp=Unit.default_hp, shield=Unit.default_shield, luck=default_luck):
-        Soldier.__init__(self, name, master, hp, shield)
+    def __init__(self, name, hp=Unit.default_hp, shield=Unit.default_shield, luck=default_luck):
+        Soldier.__init__(self, name, hp, shield)
         if not (0 <= luck <= 1):
             raise ValueError("Созаётся существо с некорректным значением удачи")
         self.luck = luck

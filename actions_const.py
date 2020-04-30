@@ -1,0 +1,5 @@
+WHOM_ITEMS = ['self', 'teammate', 'enemy', 'teammates', 'enemies', 'all']
+ACT_TYPES = ['atk', 'def', 'heal']
+EVENTS_TYPES = ['dead', 'damaged', 'healed']
+BAD_DEALS = ['hit', 'weakened', 'exhausted']
+GOOD_DEALS = ['heal', 'stronger', 'protected', 'invincible']
