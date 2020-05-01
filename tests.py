@@ -205,7 +205,7 @@ def test_structures_groups():
 def test_structures():
     test_structures_groups()
 
-
+test_structures()
 def run_tests():
     try:
         test_units()

@@ -15,7 +15,7 @@ class Unit:
         self.shield = shield
         self.atk_slots = list()
         self.def_slots = list()
-        self.profs = dict()
+        self.set_profs(dict())
         self.type = None
 
     def is_dead(self):
@@ -62,7 +62,7 @@ class Unit:
         info = ''
         info += f"Это существо имеет {self.hp} здоровья,\n"
         info += f"{self.shield} щитов, его профессионализм: {self.profs}\n"
-        info += f"его скилы защиты: {self.def_slots}; нападения {self.atk_slots}\n"
+        info += f"его скилы защиты: {self.def_slots}; нападения: {self.atk_slots}\n"
         return info
 
 
@@ -74,8 +74,8 @@ class Soldier(Unit):
         self.feature = None
 
     def __str__(self):
-        info = Unit.get_data_string(self)
-        info += f"Солдат {self.name} армии {self.master}\n"
+        info = Unit.__str__(self)
+        info += f"Солдат {self.name}\n"
         return info
 
 
@@ -90,7 +90,7 @@ class LeaderSoldier(Soldier):
         self.feature = 'leader'
 
     def __str__(self):
-        info = Soldier.get_data_string(self)
+        info = Soldier.__str__(self)
         info += f"Его лидерские качества дают армии {self.init_points} очков действий\n"
         return info
 
@@ -110,7 +110,7 @@ class CursedSoldier(Soldier):
         self.curse = curse
 
     def __str__(self):
-        info = Soldier.get_data_string(self)
+        info = Soldier.__str__(self)
         info += f'Этот солдат проклят, поэтому при событии "{self.curse.type}"\n'
         info += f'произойдёт событие "{self.curse.deal}"\n'
         info += f'Сделка с дьяволом дала ему {int(self.double_luck * 100)}% шанс повторного выполнения действия\n'
@@ -132,7 +132,7 @@ class BlessedSoldier(Soldier):
         self.bless = bless
 
     def __str__(self):
-        info = Soldier.get_data_string(self)
+        info = Soldier.__str__(self)
         info += f'Этот солдат благословлён, поэтому при событии "{self.curse.type}"\n'
         info += f'произойдёт событие "{self.curse.deal}"\n'
         info += f'с вероятностью {int(self.double_luck * 100)}%\n'
@@ -146,7 +146,7 @@ class Monster(Unit):
         self.feature = None
 
     def __str__(self):
-        info = Unit.get_data_string(self)
+        info = Unit.__str__(self)
         info += f"Монстр армии зла\n"
         return info
 
@@ -162,6 +162,6 @@ class LeaderMonster(Monster):
         self.feature = 'leader'
 
     def __str__(self):
-        info = Monster.get_data_string(self)
+        info = Monster.__str__(self)
         info += f"Его лидерские качества дают армии {self.init_points} очков действий\n"
         return info
