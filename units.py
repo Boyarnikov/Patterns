@@ -140,22 +140,23 @@ class BlessedSoldier(Soldier):
 
 
 class Monster(Unit):
-    def __init__(self, hp=Unit.default_hp, shield=Unit.default_shield):
+    def __init__(self, name='nameless', hp=Unit.default_hp, shield=Unit.default_shield):
         Unit.__init__(self, hp, shield)
         self.type = 'monster'
         self.feature = None
+        self.name = name
 
     def __str__(self):
         info = Unit.__str__(self)
-        info += f"Монстр армии зла\n"
+        info += f"Монстр {self.name}\n"
         return info
 
 
 class LeaderMonster(Monster):
     default_init_points = 1
 
-    def __init__(self, hp=Unit.default_hp, shield=Unit.default_shield, init_points=default_init_points):
-        Monster.__init__(self, hp, shield)
+    def __init__(self, name='nameless', hp=Unit.default_hp, shield=Unit.default_shield, init_points=default_init_points):
+        Monster.__init__(self, name, hp, shield)
         if init_points <= 0:
             raise ValueError("Созаётся существо с неположительными очками инициативы")
         self.init_points = init_points
