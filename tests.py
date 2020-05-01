@@ -186,13 +186,13 @@ def test_structures_groups():
     g = Group('Master')
     i_points = g.init_points
     unit1 = LeaderSoldier('Bob1', 1, 1, 10)
-    g.add_unit(unit1)
+    g.add_item(unit1)
     assert g.init_points - i_points == 10, 'Ошибка подсчёта очков инициативы группы'
-    g.add_unit(unit1)
+    g.add_item(unit1)
     assert g.init_points - i_points == 20, 'Ошибка подсчёта очков инициативы группы'
-    g.add_unit(unit1)
+    g.add_item(unit1)
     assert g.init_points - i_points == 30, 'Ошибка подсчёта очков инициативы группы'
-    g.remove_unit(unit1)
+    g.remove_item(unit1)
     assert g.init_points - i_points == 20, 'Ошибка подсчёта очков инициативы группы'
     g.remove_index(0)
     assert g.init_points - i_points == 10, 'Ошибка подсчёта очков инициативы группы'
@@ -202,10 +202,27 @@ def test_structures_groups():
     assert g.init_points - i_points == 0, 'Ошибка подсчёта очков инициативы группы'
 
 
+def test_structures_armies():
+    a = Army()
+    g1 = Group('Master')
+    g2 = Group('Master')
+    g2.add_item(LeaderSoldier('Bob1', 1, 1, 10))
+    a.add_item(g1)
+    a.add_item(g2)
+    a.clear_dead()
+    assert len(a.items) == 1, 'Ошибка отчистки пустых отрядов'
+    u = g2.items[0]
+    u.hit(100000000)
+    a.clear_dead()
+    assert a.is_dead(), 'Ошибка рекурсивной отчистки пустых отрядов'
+
+
 def test_structures():
     test_structures_groups()
 
-test_structures()
+    test_structures_armies()
+
+
 def run_tests():
     try:
         test_units()

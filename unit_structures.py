@@ -1,47 +1,74 @@
-class Group:
+class Association:
+    def __init__(self):
+        self.items = list()
+
+    def add_item(self, item):
+        self.items.append(item)
+
+    def remove_item(self, item):
+        try:
+            self.items.remove(item)
+        except ValueError:
+            raise ValueError("Попытка удалить обхект, не находящийся в асоциации")
+
+    def remove_index(self, index):
+        if 0 <= index <= len(self.items):
+            self.items.pop(index)
+        else:
+            raise ValueError("Номер удаляемого объекта не в рамках асоциации")
+
+    def clear_dead(self):
+        for index in range(len(self.items) - 1, -1, -1):
+            if self.items[index].is_dead():
+                self.remove_index(index)
+
+    def is_dead(self):
+        return len(self.items) == 0
+
+    def __str__(self):
+        info = ''
+        for item in self.items:
+            info += str(item) + '\n'
+        return info
+
+
+class Group(Association):
     starting_init_points = 3
-    default_shield = 0
 
     def __init__(self, master):
         self.master = str(master)
         self.init_points = Group.starting_init_points
-        self.units = list()
+        Association.__init__(self)
 
-    def add_unit(self, unit):
+    def add_item(self, unit):
         if unit.type is not None:
             if unit.feature == 'leader':
                 self.init_points += unit.init_points
-        self.units.append(unit)
+        Association.add_item(self, unit)
 
-    def remove_unit(self, unit):
+    def remove_item(self, unit):
         try:
             if unit.type is not None:
                 if unit.feature == 'leader':
                     self.init_points -= unit.init_points
-            self.units.remove(unit)
-        except ValueError:
-            raise ValueError("Попытка удалить юнита, не находящегося в группе")
+            Association.remove_item(self, unit)
+        except AttributeError:
+            raise AttributeError("Объект не имеет отрибутов Юнита")
 
     def remove_index(self, index):
-        if 0 <= index <= len(self.units):
-            unit = self.units[index]
+        if 0 <= index <= len(self.items):
+            unit = self.items[index]
             if unit.type is not None:
                 if unit.feature == 'leader':
                     self.init_points -= unit.init_points
-            self.units.pop(index)
+            Association.remove_index(self, index)
         else:
             raise ValueError("Номер удаляемого юнита не в рамках листа")
 
+
+class Army(Association):
     def clear_dead(self):
-        for index in range(len(self.units) - 1, -1, -1):
-            if self.units[index].is_dead():
+        for index in range(len(self.items) - 1, -1, -1):
+            self.items[index].clear_dead()
+            if self.items[index].is_dead():
                 self.remove_index(index)
-
-    def is_dead(self):
-        return len(self.units) == 0
-
-    def __str__(self):
-        info = ''
-        for unit in self.units:
-            info += str(unit) + '\n'
-        return info
