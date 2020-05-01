@@ -1,7 +1,9 @@
 from units import *
+from unit_structures import *
+from status_decorators import *
 
 
-def test_creatures_init_system(hp, shield):
+def test_units_init_system(hp, shield):
     unit = Unit()
     unit = Unit(10)
     unit = Unit(1, 0)
@@ -16,7 +18,7 @@ def test_creatures_init_system(hp, shield):
             ValueError("Существо с отрицательными щитами или неположительным здоровьем создано")
 
 
-def test_creatures_hit_system(hp, shield, hit, expected_hp, expected_shield, expected_is_dead):
+def test_units_hit_system(hp, shield, hit, expected_hp, expected_shield, expected_is_dead):
     for i in range(len(hp)):
         unit = Unit(hp[i], shield[i])
         unit.hit(hit[i])
@@ -25,7 +27,7 @@ def test_creatures_hit_system(hp, shield, hit, expected_hp, expected_shield, exp
         assert unit.is_dead() == expected_is_dead[i], "ошибка в рачёте смерти при ударе"
 
 
-def test_creatures_type_and_features_system():
+def test_units_type_and_features_system():
     unit = Unit()
     unit_type = set()
     unit_type.add(unit.type)
@@ -55,7 +57,7 @@ def test_creatures_type_and_features_system():
     assert (unit.type not in s_types), "Ошибка именования типов"
 
 
-def test_creatures_features_exceptions():
+def test_units_features_exceptions():
     s_types_with_features = [LeaderSoldier, CursedSoldier, BlessedSoldier]
     for s in s_types_with_features:
         try:
@@ -72,24 +74,6 @@ def test_creatures_features_exceptions():
             ...
         else:
             raise ValueError("Тест на отрицательные фичи не выдал ошибок")
-
-
-def test_units():
-    hp = [0, 0, -100, 69, 42]
-    shield = [0, 100, 0, -1, -100]
-    test_creatures_init_system(hp, shield)
-
-    hp = [10, 123, 1000, 69, 1]
-    shield = [100, 0, 0, 42, 0]
-    hit = [0, 122, 1, 13, 1]
-    expected_hp = [10, 1, 999, 69, 0]
-    expected_shield = [100, 0, 0, 29, 0]
-    expected_is_dead = [False, False, False, False, True]
-    test_creatures_hit_system(hp, shield, hit, expected_hp, expected_shield, expected_is_dead)
-
-    test_creatures_type_and_features_system()
-
-    test_creatures_features_exceptions()
 
 
 def test_act():
@@ -170,12 +154,62 @@ def test_status_decorator():
     assert unit1 == unit2, 'Ошибка пересчёта професианализма внутри декораторов'
 
 
+def test_unit_base():
+    hp = [0, 0, -100, 69, 42]
+    shield = [0, 100, 0, -1, -100]
+    test_units_init_system(hp, shield)
+
+    hp = [10, 123, 1000, 69, 1]
+    shield = [100, 0, 0, 42, 0]
+    hit = [0, 122, 1, 13, 1]
+    expected_hp = [10, 1, 999, 69, 0]
+    expected_shield = [100, 0, 0, 29, 0]
+    expected_is_dead = [False, False, False, False, True]
+    test_units_hit_system(hp, shield, hit, expected_hp, expected_shield, expected_is_dead)
+
+
+def test_units():
+    test_unit_base()
+
+    test_units_type_and_features_system()
+
+    test_units_features_exceptions()
+
+    test_act()
+
+    test_profs()
+
+    test_status_decorator()
+
+
+def test_structures_groups():
+    g = Group('Master')
+    i_points = g.init_points
+    unit1 = LeaderSoldier('Bob1', 1, 1, 10)
+    g.add_unit(unit1)
+    assert g.init_points - i_points == 10, 'Ошибка подсчёта очков инициативы группы'
+    g.add_unit(unit1)
+    assert g.init_points - i_points == 20, 'Ошибка подсчёта очков инициативы группы'
+    g.add_unit(unit1)
+    assert g.init_points - i_points == 30, 'Ошибка подсчёта очков инициативы группы'
+    g.remove_unit(unit1)
+    assert g.init_points - i_points == 20, 'Ошибка подсчёта очков инициативы группы'
+    g.remove_index(0)
+    assert g.init_points - i_points == 10, 'Ошибка подсчёта очков инициативы группы'
+    unit1.hit(100000)
+    g.clear_dead()
+    assert g.is_dead(), 'Ошибка проверки гибели команды'
+    assert g.init_points - i_points == 0, 'Ошибка подсчёта очков инициативы группы'
+
+
+def test_structures():
+    test_structures_groups()
+
+
 def run_tests():
     try:
         test_units()
-        test_act()
-        test_profs()
-        test_status_decorator()
+        test_structures()
     except Exception:
         print("Ошибка тестирования системы")
     else:

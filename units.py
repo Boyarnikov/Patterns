@@ -1,5 +1,4 @@
 from actions import *
-from status_decorators import *
 
 
 class Unit:
@@ -48,12 +47,18 @@ class Unit:
         for i in stats:
             self.atk_slots(Act(i))
 
+    def get_atc(self):
+        return self.atk_slots.copy()
+
     def set_def(self, stats=[None]):
         self.def_slots = list()
         for i in stats:
             self.def_slots(Act(i))
 
-    def get_data_string(self):
+    def get_def(self):
+        return self.def_slots.copy()
+
+    def __str__(self):
         info = ''
         info += f"Это существо имеет {self.hp} здоровья,\n"
         info += f"{self.shield} щитов, его профессионализм: {self.profs}\n"
@@ -68,7 +73,7 @@ class Soldier(Unit):
         self.type = 'soldier'
         self.feature = None
 
-    def get_data_string(self):
+    def __str__(self):
         info = Unit.get_data_string(self)
         info += f"Солдат {self.name} армии {self.master}\n"
         return info
@@ -84,7 +89,7 @@ class LeaderSoldier(Soldier):
         self.init_points = init_points
         self.feature = 'leader'
 
-    def get_data_string(self):
+    def __str__(self):
         info = Soldier.get_data_string(self)
         info += f"Его лидерские качества дают армии {self.init_points} очков действий\n"
         return info
@@ -104,7 +109,7 @@ class CursedSoldier(Soldier):
     def set_curse(self, curse):
         self.curse = curse
 
-    def get_data_string(self):
+    def __str__(self):
         info = Soldier.get_data_string(self)
         info += f'Этот солдат проклят, поэтому при событии "{self.curse.type}"\n'
         info += f'произойдёт событие "{self.curse.deal}"\n'
@@ -126,7 +131,7 @@ class BlessedSoldier(Soldier):
     def set_curse(self, bless):
         self.bless = bless
 
-    def get_data_string(self):
+    def __str__(self):
         info = Soldier.get_data_string(self)
         info += f'Этот солдат благословлён, поэтому при событии "{self.curse.type}"\n'
         info += f'произойдёт событие "{self.curse.deal}"\n'
@@ -140,7 +145,7 @@ class Monster(Unit):
         self.type = 'monster'
         self.feature = None
 
-    def get_data_string(self):
+    def __str__(self):
         info = Unit.get_data_string(self)
         info += f"Монстр армии зла\n"
         return info
@@ -156,7 +161,7 @@ class LeaderMonster(Monster):
         self.init_points = init_points
         self.feature = 'leader'
 
-    def get_data_string(self):
+    def __str__(self):
         info = Monster.get_data_string(self)
         info += f"Его лидерские качества дают армии {self.init_points} очков действий\n"
         return info
