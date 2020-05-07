@@ -17,15 +17,20 @@ class Unit:
         self.def_slots = list()
         self.set_profs(dict())
         self.type = None
+        self.feature = None
 
     def is_dead(self):
         return self.hp <= 0
 
     def hit(self, amount=1):
+        if amount < 0:
+            raise ValueError("Отрицательный урон по юниту")
         self.hp -= max(amount - self.shield, 0)
         self.shield = max(0, self.shield - amount)
 
     def heal(self, amount=1):
+        if amount < 0:
+            raise ValueError("Отрицательное лечение по юниту")
         self.hp = min(self.hp + amount, self.max_hp)
 
     def set_profs(self, set_profs):
@@ -47,7 +52,7 @@ class Unit:
         for i in stats:
             self.atk_slots(Act(i))
 
-    def get_atc(self):
+    def get_atk(self):
         return self.atk_slots.copy()
 
     def set_def(self, stats=[None]):
@@ -128,7 +133,7 @@ class BlessedSoldier(Soldier):
         self.bless = None
         self.feature = 'blessed'
 
-    def set_curse(self, bless):
+    def set_bless(self, bless):
         self.bless = bless
 
     def __str__(self):

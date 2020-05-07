@@ -18,6 +18,7 @@ class StatusDecorator:
 
 class StatusExhausted(StatusDecorator):
     exhausted_factor = EXHAUSTED_FACTOR
+    name = 'exhausted'
 
     def get_profs(self):
         d = self.unit.get_profs().copy()
@@ -27,6 +28,7 @@ class StatusExhausted(StatusDecorator):
 
 class StatusProtected(StatusDecorator):
     protected_factor = PROTECTED_FACTOR
+    name = 'protected'
 
     def get_profs(self):
         d = self.unit.get_profs().copy()
@@ -36,6 +38,7 @@ class StatusProtected(StatusDecorator):
 
 class StatusWeakened(StatusDecorator):
     weakened_factor = EXHAUSTED_FACTOR
+    name = 'weakened'
 
     def get_profs(self):
         d = self.unit.get_profs().copy()
@@ -45,6 +48,7 @@ class StatusWeakened(StatusDecorator):
 
 class StatusStronger(StatusDecorator):
     stronger_factor = STRONGER_FACTOR
+    name = 'stronger'
 
     def get_profs(self):
         d = self.unit.get_profs().copy()
@@ -53,5 +57,13 @@ class StatusStronger(StatusDecorator):
 
 
 class StatusInvincible(StatusDecorator):
+    name = 'invincible'
+
     def hit(self, amount=1):
         return
+
+
+STATUSES = [StatusExhausted, StatusProtected, StatusWeakened, StatusStronger, StatusInvincible]
+STATUS_DICT = dict()
+for status in STATUSES:
+    STATUS_DICT[status.name] = status

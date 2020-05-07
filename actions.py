@@ -24,6 +24,9 @@ class Curse:
         else:
             raise ValueError("Неверный тип проклятья")
 
+    def make_list(self):
+        return [self.type, self.deals, self.whom]
+
 
 class Bless:
     types = ACT_TYPES
@@ -37,3 +40,6 @@ class Bless:
             self.whom = set_whom
         else:
             raise ValueError("Неверный тип благословления")
+
+    def make_list(self):
+        return [self.type, self.deals, self.whom]

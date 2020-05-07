@@ -22,19 +22,21 @@ class LogActionInfo(DataLog):
 
 
 class LogStatusInfo(DataLog):
-    def __init__(self, master, status, name):
+    def __init__(self, master, name, status, whom):
         self.type = 'status_info'
         self.master = master
-        self.status = status
         self.name = name
+        self.status = status
+        self.whom = whom
 
 
 class LogHitInfo(DataLog):
-    def __init__(self, master, hit, name):
+    def __init__(self, master, name, status, whom):
         self.type = 'hit_info'
         self.master = master
-        self.status = hit
         self.name = name
+        self.status = status
+        self.whom = whom
 
 
 class LogDeathInfo(DataLog):
@@ -127,9 +129,9 @@ class LogAuctionUnit(DataLog):
         self.profs = profs.copy()
         self.init_points = init_p
         if curse is not None:
-            self.curse = [curse.types, curse.deals, curse.whom]
+            self.curse = curse.make_list()
         if bless is not None:
-            self.bless = [bless.types, bless.deals, bless.whom]
+            self.bless = bless.make_list()
 
 
 class LogPlayerAdd(DataLog):
@@ -156,3 +158,22 @@ class LogGroupInfo(DataLog):
         self.type = 'group_info'
         self.num = num
         self.name = name
+
+
+class InputLog:
+    def __init__(self):
+        self.type = None
+
+
+class InputBet:
+    def __init__(self, player, money, num):
+        self.type = 'bet'
+        self.player = player
+        self.money = money
+        self.num = num
+
+
+class InputNewPlayer:
+    def __init__(self, player):
+        self.type = 'new'
+        self.player = player
