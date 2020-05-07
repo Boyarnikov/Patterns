@@ -293,15 +293,55 @@ def test_unit_interface_acts():
     assert len(logs) == 3 and logs[2].act == 'def' and logs[1].act == 'heal', "Некорректный лист логов"
 
 
+def test_unit_interface_curse_and_bless():
+
+    u = UnitFightInterface()
+    cs = CursedSoldier('Bob', 3, 0)
+    bs = BlessedSoldier('Bob', 3, 0)
+
+    cs.set_curse(Curse('damaged', 'hit', 'self'))
+    logs = u.hit(cs, 1)
+    assert len(logs) == 1 and logs[0].type == 'hit_info' and logs[0].whom == '?self', "Некорректный лист логов"
+
+    cs.set_curse(Curse('healed', 'weakened', 'all'))
+    logs = u.hit(cs, -1)
+    assert len(logs) == 1 and logs[0].type == 'status_info' and logs[0].whom == '?all', "Некорректный лист логов"
+
+    logs = u.shield(cs, 1000)
+
+    cs.set_curse(Curse('damaged', 'hit', 'self'))
+    logs = u.hit(cs, 1)
+    assert len(logs) == 0, "Триггер удара сработал, не смотря на поглощение урона щитами"
+
+    cs.set_curse(Curse('healed', 'weakened', 'all'))
+    logs = u.hit(cs, -1)
+    assert len(logs) == 0, "Триггер лечения сработал, не смотря на потолок в полное здоровье"
+
+    bs.set_bless(Bless('atk', 'heal', 'self'))
+    bs.set_atk(['atk', 'def'])
+    bs.set_profs(dict(zip(['atk'], [1])))
+    bs.luck = 1
+
+    logs = u.get_act_atk(bs)
+    assert len(logs) == 2 and logs[1].type == 'hit_info' and logs[1].whom == '?self', "Некорректный лист логов"
+
+    bs.set_bless(Bless('def', 'heal', 'self'))
+
+    logs = u.get_act_atk(bs)
+    assert len(logs) == 1, "Некорректный лист логов"
+
+
 def test_unit_interface():
     test_unit_interface_acts()
     test_unit_interface_base()
+    test_unit_interface_curse_and_bless()
 
 
 def run_tests():
     try:
         test_units()
         test_structures()
+        test_unit_interface_acts()
     except Exception:
         print("Ошибка тестирования системы")
     else:

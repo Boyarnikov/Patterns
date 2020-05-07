@@ -19,17 +19,17 @@ class UnitFightInterface:
 
     def handle_bless(self, bless, act, name):
         if act == bless.type:
-            if bless.deal == 'heal':
+            if bless.deals == 'heal':
                 self.logs.append(log.LogHitInfo('?master', name, -1, '?' + bless.whom))
-            elif bless.deal in actions_const.STATUSES:
-                self.logs.append(log.LogStatusInfo('?master', name, bless.deal, '?' + bless.whom))
+            elif bless.deals in actions_const.STATUSES:
+                self.logs.append(log.LogStatusInfo('?master', name, bless.deals, '?' + bless.whom))
 
     def handle_curse(self, curse, event, name):
         if event == curse.type:
-            if curse.deal == 'hit':
+            if curse.deals == 'hit':
                 self.logs.append(log.LogHitInfo('?master', name, 1, '?' + curse.whom))
-            elif curse.deal in actions_const.STATUSES:
-                self.logs.append(log.LogStatusInfo('?master', name, curse.deal, '?' + curse.whom))
+            elif curse.deals in actions_const.STATUSES:
+                self.logs.append(log.LogStatusInfo('?master', name, curse.deals, '?' + curse.whom))
 
     def handle_act(self, act, unit):
         profs = unit.get_profs()
@@ -63,12 +63,14 @@ class UnitFightInterface:
         if unit.is_dead():
             return list()
         if hit > 0:
+            hp = unit.hp
             unit.hit(hit)
-            if unit.feature == 'cursed':
+            if hp != unit.hp and unit.feature == 'cursed':
                 self.handle_curse(unit.curse, 'damaged', unit.name)
         if hit < 0:
+            hp = unit.hp
             unit.heal(-hit)
-            if unit.feature == 'cursed':
+            if hp != unit.hp and unit.feature == 'cursed':
                 self.handle_curse(unit.curse, 'healed', unit.name)
         if unit.is_dead():
             self.logs.append(log.LogDeathInfo('?master', unit.name))
