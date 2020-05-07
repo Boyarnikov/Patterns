@@ -16,8 +16,9 @@ class Curse:
     deals = BAD_DEALS
     whom = WHOM_ITEMS
 
-    def __init__(self, set_type, set_deals, set_whom):
-        if set_type in Curse.types and set_deals in Curse.deals and set_whom in Curse.whom:
+    def __init__(self, set_type='none', set_deals='none', set_whom='none'):
+        if (set_type in Curse.types and set_deals in Curse.deals and set_whom in Curse.whom) or \
+                (set_type == 'none' and set_deals == 'none' and set_whom == 'none'):
             self.type = set_type
             self.deals = set_deals
             self.whom = set_whom
@@ -33,8 +34,9 @@ class Bless:
     deals = GOOD_DEALS
     whom = WHOM_ITEMS
 
-    def __init__(self, set_type, set_deals, set_whom):
-        if set_type in Bless.types and set_deals in Bless.deals and set_whom in Bless.whom:
+    def __init__(self, set_type='none', set_deals='none', set_whom='none'):
+        if set_type in Bless.types and set_deals in Bless.deals and set_whom in Bless.whom or \
+                (set_type == 'none' and set_deals == 'none' and set_whom == 'none'):
             self.type = set_type
             self.deals = set_deals
             self.whom = set_whom

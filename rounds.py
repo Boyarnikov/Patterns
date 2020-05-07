@@ -15,12 +15,12 @@ def cor_handle_log_act(f, log_data):  # обработчик act-ов
         assert log_data.act in actions_const.ACT_TYPES, "Неверный тип действия в логе"
         f.logs.append(log_data)
         if log_data.act == "atk":
-            cor_handle_log(log_classes.LogHitInfo('?master',log_data.name, 1, '?enemy'))
+            cor_handle_log(f, log_classes.LogHitInfo('?master', log_data.name, 1, '?enemy'))
         elif log_data.act == "def":
             target = f.handle_units_names_find(log_data.name, '?self')
             f.interface.shield(target[0], 1)
         elif log_data.act == "heal":
-            cor_handle_log(log_classes.LogHitInfo('?master',log_data.name, -1, '?teammate'))
+            cor_handle_log(f, log_classes.LogHitInfo('?master', log_data.name, -1, '?teammate'))
     else:
         cor_handle_log_act(f, log_data)
 
@@ -33,8 +33,8 @@ def cor_handle_log_hit(f, log_data):  # обработчик hit-ов
         for name in log_data.whom:
             unit = f.find_unit_by_unit_name(name)
             new_logs.extend(f.interface.hit(unit, log_data.hit))
-        for l in new_logs:
-            cor_handle_log(l)
+        for new_log in new_logs:
+            cor_handle_log(f, new_log)
     else:
         cor_handle_log_status(f, log_data)
 
@@ -154,7 +154,7 @@ class Fight:
             unit = self.group_def[index]
             if unit.is_dead():
                 continue
-            logs = self.fight_interface.get_atk_def(unit)
+            logs = self.fight_interface.get_act_atk(unit)
             for log_data in logs:
                 cor_handle_log(self, log_data)
 

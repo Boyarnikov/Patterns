@@ -46,20 +46,22 @@ class UnitFightInterface:
     def get_act_atk(self, unit):
         atk = unit.get_atk()
         for act in atk:
-            self.handle_act(act, unit)
+            self.handle_act(act.type, unit)
         send_logs = self.logs.copy()
         self.logs = list()
         return send_logs
 
     def get_act_def(self, unit):
-        defence = unit.get_atk()
+        defence = unit.get_def()
         for act in defence:
-            self.handle_act(act, unit)
+            self.handle_act(act.type, unit)
         send_logs = self.logs.copy()
         self.logs = list()
         return send_logs
 
     def hit(self, unit, hit):
+        if unit.is_dead():
+            return list()
         if hit > 0:
             unit.hit(hit)
             if unit.feature == 'cursed':
@@ -69,7 +71,7 @@ class UnitFightInterface:
             if unit.feature == 'cursed':
                 self.handle_curse(unit.curse, 'healed', unit.name)
         if unit.is_dead():
-            log.LogDeathInfo('?master', unit.name)
+            self.logs.append(log.LogDeathInfo('?master', unit.name))
             if unit.feature == 'cursed':
                 self.handle_curse(unit.curse, 'dead', unit.name)
         send_logs = self.logs.copy()
@@ -77,8 +79,15 @@ class UnitFightInterface:
         return send_logs
 
     def shield(self, unit, shields):
+        if unit.is_dead():
+            return list()
         unit.shield += shields
+        return list()
 
     def set_status(self, unit, status):
-        self.logs = list()
+        if status == 'none':
+            if isinstance(unit, status_decorators.StatusDecorator):
+                return unit.redecorate()
+            else:
+                return unit
         return status_decorators.STATUS_DICT[status](unit)

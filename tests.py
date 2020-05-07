@@ -1,6 +1,7 @@
 from units import *
 from unit_structures import *
 from status_decorators import *
+from unit_fight_interface import *
 
 
 def test_units_init_system(hp, shield):
@@ -204,8 +205,8 @@ def test_structures_groups():
 
 def test_structures_armies():
     a = Army()
-    g1 = Group('Master')
-    g2 = Group('Master')
+    g1 = Group('Master1')
+    g2 = Group('Master2')
     g2.add_item(LeaderSoldier('Bob1', 1, 1, 10))
     a.add_item(g1)
     a.add_item(g2)
@@ -219,8 +220,82 @@ def test_structures_armies():
 
 def test_structures():
     test_structures_groups()
-
     test_structures_armies()
+
+
+def test_unit_interface_base():
+    name = 'Bob1'
+    logs = list()
+    s1 = Soldier(name, 2, 0)
+    u = UnitFightInterface()
+
+    logs.extend(u.hit(s1, 1))
+    assert s1.hp == 1, "Ошибка интерфейса базового урона"
+    logs.extend(u.shield(s1, 1))
+    assert s1.shield == 1, "Ошибка интерфейса базовых щитов"
+    logs.extend(u.hit(s1, -2))
+    assert s1.hp == 2, "Ошибка интерфейса базового лечения"
+    assert len(logs) == 0, "Ошибка базовых сеттеров, не пустой пул от комманд, которые не должны возвращать логи"
+    logs.extend(u.hit(s1, 10))
+    assert len(logs) == 1, "Интерфейс не вернул лог смерти"
+    assert logs[0].name == name and logs[0].type == 'death_info', "Интерфейс вернул неверный лог смерти"
+    logs.extend(u.hit(s1, -2000))
+    assert s1.hp == 0, 'Интерфейс взаимодействует с "мёртвыми" юнитами'
+
+    name = 'Bob1'
+    s1 = Soldier(name, 2, 0)
+    u = UnitFightInterface()
+    stat1 = 'weakened'
+    stat2 = 'exhausted'
+    stat3 = 'none'
+
+    s1 = u.set_status(s1, stat1)
+    assert s1.get_statuses() == [stat1], 'Интерфейс некорректно запаковывает юнитов'
+    s1 = u.set_status(s1, stat2)
+    assert s1.get_statuses() == [stat1, stat2], 'Интерфейс некорректно запаковывает юнитов'
+    s1 = u.set_status(s1, stat3)
+    try:
+        s1.get_statuses()
+    except AttributeError:
+        ...
+    else:
+        assert True, 'Интерфейс некорректно распаковывает юнитов'
+    s1 = u.set_status(s1, stat3)
+
+
+def test_unit_interface_acts():
+    u = UnitFightInterface()
+    name = 'Bob1'
+    s1 = Soldier(name, 3, 0)
+
+    logs = u.get_act_atk(s1)
+    assert len(logs) == 0, "Некорректный лист логов"
+    logs = u.get_act_def(s1)
+    assert len(logs) == 0, "Некорректный лист логов"
+
+    s1.set_atk(['atk', 'atk', 'def', 'heal'])
+    s1.set_def(['atk', 'heal', 'def'])
+    logs = u.get_act_atk(s1)
+    assert len(logs) == 0, "Некорректный лист логов"
+    logs = u.get_act_def(s1)
+    assert len(logs) == 0, "Некорректный лист логов"
+
+    s1.set_profs(dict(zip(['atk'], [1])))
+    logs = u.get_act_atk(s1)
+    assert len(logs) == 2 and logs[0].act == 'atk' and logs[1].act == 'atk', "Некорректный лист логов"
+    logs = u.get_act_def(s1)
+    assert len(logs) == 1 and logs[0].act == 'atk', "Некорректный лист логов"
+
+    s1.set_profs(dict(zip(['atk', 'def', 'heal'], [1, 1, 1])))
+    logs = u.get_act_atk(s1)
+    assert len(logs) == 4 and logs[2].act == 'def' and logs[3].act == 'heal', "Некорректный лист логов"
+    logs = u.get_act_def(s1)
+    assert len(logs) == 3 and logs[2].act == 'def' and logs[1].act == 'heal', "Некорректный лист логов"
+
+
+def test_unit_interface():
+    test_unit_interface_acts()
+    test_unit_interface_base()
 
 
 def run_tests():

@@ -15,6 +15,7 @@ class Unit:
         self.shield = shield
         self.atk_slots = list()
         self.def_slots = list()
+        self.profs = dict()
         self.set_profs(dict())
         self.type = None
         self.feature = None
@@ -27,6 +28,7 @@ class Unit:
             raise ValueError("Отрицательный урон по юниту")
         self.hp -= max(amount - self.shield, 0)
         self.shield = max(0, self.shield - amount)
+        self.hp = max(self.hp, 0)
 
     def heal(self, amount=1):
         if amount < 0:
@@ -47,18 +49,18 @@ class Unit:
         d = self.profs.copy()
         return d
 
-    def set_atk(self, stats=[None]):
+    def set_atk(self, stats):
         self.atk_slots = list()
         for i in stats:
-            self.atk_slots(Act(i))
+            self.atk_slots.append(Act(i))
 
     def get_atk(self):
         return self.atk_slots.copy()
 
-    def set_def(self, stats=[None]):
+    def set_def(self, stats):
         self.def_slots = list()
         for i in stats:
-            self.def_slots(Act(i))
+            self.def_slots.append(Act(i))
 
     def get_def(self):
         return self.def_slots.copy()
@@ -108,7 +110,7 @@ class CursedSoldier(Soldier):
         if not (0 <= double_luck <= 1):
             raise ValueError("Созаётся существо с некорректным значением удачи")
         self.double_luck = double_luck
-        self.curse = None
+        self.curse = Curse()
         self.feature = 'cursed'
 
     def set_curse(self, curse):
@@ -130,7 +132,7 @@ class BlessedSoldier(Soldier):
         if not (0 <= luck <= 1):
             raise ValueError("Созаётся существо с некорректным значением удачи")
         self.luck = luck
-        self.bless = None
+        self.bless = Bless()
         self.feature = 'blessed'
 
     def set_bless(self, bless):
