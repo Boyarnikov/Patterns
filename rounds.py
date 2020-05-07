@@ -1,5 +1,4 @@
 from unit_fight_interface import *
-import status_decorators
 import random as r
 import actions_const
 import log_classes
@@ -81,9 +80,6 @@ class Fight:
         self.set_orders()
         self.fight_interface = UnitFightInterface()
 
-        self.iterate_atk = self.order_atk
-        self.iterate_def = self.order_def
-
     def set_orders(self):  # устанавливает случайный порядок защиты-отаки
         order_size = max(len(self.group_atk.items), self.group_atk.init_points)
         order_atk = [x for x in range(len(self.group_atk.items))]
@@ -147,14 +143,22 @@ class Fight:
             return []
 
     def iterate(self):  # производит итерацию боя, обрабатывая логи и сохраняя их в self.logs
-        iterate_atk = self.order_atk
-        iterate_def = self.order_def
-
-        iterate_for = iterate_def
-        for index in iterate_for:
+        for index in self.order_def:
             unit = self.group_def[index]
             if unit.is_dead():
                 continue
             logs = self.fight_interface.get_act_def(unit)
             for log_data in logs:
                 cor_handle_log(self, log_data)
+        for index in self.order_atk:
+            unit = self.group_def[index]
+            if unit.is_dead():
+                continue
+            logs = self.fight_interface.get_atk_def(unit)
+            for log_data in logs:
+                cor_handle_log(self, log_data)
+
+    def end_fight(self):
+        self.group_atk.clear_dead()
+        self.group_def.clear_dead()
+        return self.logs

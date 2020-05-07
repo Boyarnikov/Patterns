@@ -5,16 +5,19 @@ class DataLog:
 
 class LogRoundInit(DataLog):
     def __init__(self):
+        DataLog.__init__(self)
         self.type = 'output_init'
 
 
 class LogRoundEnd(DataLog):
     def __init__(self):
+        DataLog.__init__(self)
         self.type = 'output_end'
 
 
 class LogActionInfo(DataLog):
     def __init__(self, master, act, name):
+        DataLog.__init__(self)
         self.type = 'act_info'
         self.master = master
         self.act = act
@@ -23,6 +26,7 @@ class LogActionInfo(DataLog):
 
 class LogStatusInfo(DataLog):
     def __init__(self, master, name, status, whom):
+        DataLog.__init__(self)
         self.type = 'status_info'
         self.master = master
         self.name = name
@@ -32,6 +36,7 @@ class LogStatusInfo(DataLog):
 
 class LogHitInfo(DataLog):
     def __init__(self, master, name, status, whom):
+        DataLog.__init__(self)
         self.type = 'hit_info'
         self.master = master
         self.name = name
@@ -41,6 +46,7 @@ class LogHitInfo(DataLog):
 
 class LogDeathInfo(DataLog):
     def __init__(self, master, name):
+        DataLog.__init__(self)
         self.type = 'death_info'
         self.master = master
         self.name = name
@@ -48,6 +54,7 @@ class LogDeathInfo(DataLog):
 
 class LogUnitInfo(DataLog):
     def __init__(self, master, hp, shield, unit_type, feature, name):
+        DataLog.__init__(self)
         self.type = 'unit_info'
         self.master = master
         self.hp = hp
@@ -57,8 +64,9 @@ class LogUnitInfo(DataLog):
         self.name = name
 
 
-class LogUnitInfo(DataLog):
+class LogFightInfo(DataLog):
     def __init__(self, master_atk, master_def):
+        DataLog.__init__(self)
         self.type = 'fight_info'
         self.master_atk = master_atk
         self.master_def = master_def
@@ -66,13 +74,15 @@ class LogUnitInfo(DataLog):
 
 class LogRoundInfo(DataLog):
     def __init__(self, players_num, enemies_num):
+        DataLog.__init__(self)
         self.type = 'round_info'
-        self.playerss_num = players_num
+        self.players_num = players_num
         self.enemies_num = enemies_num
 
 
-class LogRoundInfo(DataLog):
+class LogPlayerInfo(DataLog):
     def __init__(self, player, money, size):
+        DataLog.__init__(self)
         self.type = 'player_info'
         self.player = player
         self.money = money
@@ -81,22 +91,26 @@ class LogRoundInfo(DataLog):
 
 class LogAuctionInit(DataLog):
     def __init__(self):
+        DataLog.__init__(self)
         self.type = 'auction_init'
 
 
 class LogAuctionTime(DataLog):
     def __init__(self, time):
+        DataLog.__init__(self)
         self.type = 'auction_time'
         self.time = time
 
 
 class LogAuctionEnd(DataLog):
     def __init__(self):
+        DataLog.__init__(self)
         self.type = 'auction_end'
 
 
 class LogAuctionBet(DataLog):
     def __init__(self, player, num, money):
+        DataLog.__init__(self)
         self.type = 'auction_bet'
         self.player = player
         self.num = num
@@ -105,18 +119,21 @@ class LogAuctionBet(DataLog):
 
 class LogAuctionReject(DataLog):
     def __init__(self, player):
+        DataLog.__init__(self)
         self.type = 'auction_rj'
         self.player = player
 
 
 class LogAuctionResult(DataLog):
     def __init__(self, d):
+        DataLog.__init__(self)
         self.type = 'auction_res'
         self.res = d.copy()
 
 
 class LogAuctionUnit(DataLog):
     def __init__(self, num, hp, shield, unit_type, feature, name, atk_slots, def_slots, profs, init_p, curse, bless):
+        DataLog.__init__(self)
         self.type = 'auction_unit'
         self.num = num
         self.hp = hp
@@ -136,18 +153,21 @@ class LogAuctionUnit(DataLog):
 
 class LogPlayerAdd(DataLog):
     def __init__(self, player):
+        DataLog.__init__(self)
         self.type = 'player_add'
         self.player = player
 
 
 class LogPlayerRemove(DataLog):
     def __init__(self, player):
+        DataLog.__init__(self)
         self.type = 'player_rm'
         self.player = player
 
 
 class LogEnemyAdd(DataLog):
     def __init__(self, name, num):
+        DataLog.__init__(self)
         self.type = 'enemy_add'
         self.num = num
         self.name = name
@@ -155,6 +175,7 @@ class LogEnemyAdd(DataLog):
 
 class LogGroupInfo(DataLog):
     def __init__(self, name, num):
+        DataLog.__init__(self)
         self.type = 'group_info'
         self.num = num
         self.name = name
@@ -165,15 +186,17 @@ class InputLog:
         self.type = None
 
 
-class InputBet:
+class InputBet(InputLog):
     def __init__(self, player, money, num):
+        InputLog.__init__(self)
         self.type = 'bet'
         self.player = player
         self.money = money
         self.num = num
 
 
-class InputNewPlayer:
+class InputNewPlayer(InputLog):
     def __init__(self, player):
+        InputLog.__init__(self)
         self.type = 'new'
         self.player = player
