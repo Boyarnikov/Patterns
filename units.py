@@ -65,11 +65,14 @@ class Unit:
     def get_def(self):
         return self.def_slots.copy()
 
+    def get_statuses(self):
+        return []
+
     def __str__(self):
         info = ''
         info += f"Это существо имеет {self.hp} здоровья,\n"
         info += f"{self.shield} щитов, его профессионализм: {self.profs}\n"
-        info += f"его скилы защиты: {self.def_slots}; нападения: {self.atk_slots}\n"
+        info += f"его скилы защиты: {[str(i) for i in self.def_slots]}; нападения: {[str(i) for i in self.atk_slots]}\n"
         return info
 
 
@@ -81,8 +84,9 @@ class Soldier(Unit):
         self.feature = None
 
     def __str__(self):
-        info = Unit.__str__(self)
-        info += f"Солдат {self.name}\n"
+        info = f"Солдат {self.name}\n"
+        info += Unit.__str__(self)
+
         return info
 
 
@@ -154,8 +158,8 @@ class Monster(Unit):
         self.name = name
 
     def __str__(self):
-        info = Unit.__str__(self)
-        info += f"Монстр {self.name}\n"
+        info = f"Монстр {self.name}\n"
+        info += Unit.__str__(self)
         return info
 
 

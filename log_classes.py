@@ -16,12 +16,12 @@ class LogRoundEnd(DataLog):
 
 
 class LogActionInfo(DataLog):
-    def __init__(self, master, act, name):
+    def __init__(self, master, name, act):
         DataLog.__init__(self)
         self.type = 'act_info'
         self.master = master
         self.act = act
-        self.unit_name = name
+        self.name = name
 
 
 class LogStatusInfo(DataLog):
@@ -35,12 +35,12 @@ class LogStatusInfo(DataLog):
 
 
 class LogHitInfo(DataLog):
-    def __init__(self, master, name, status, whom):
+    def __init__(self, master, name, hit, whom):
         DataLog.__init__(self)
         self.type = 'hit_info'
         self.master = master
         self.name = name
-        self.status = status
+        self.hit = hit
         self.whom = whom
 
 
@@ -53,23 +53,26 @@ class LogDeathInfo(DataLog):
 
 
 class LogUnitInfo(DataLog):
-    def __init__(self, master, hp, shield, unit_type, feature, name):
+    def __init__(self, master, name, hp, shield, unit_type, feature, statuses):
         DataLog.__init__(self)
-        self.type = 'unit_info'
         self.master = master
+        self.name = name
+        self.type = 'unit_info'
         self.hp = hp
         self.shield = shield
         self.unit_type = unit_type
         self.feature = feature
-        self.name = name
+        self.statuses = statuses
 
 
 class LogFightInfo(DataLog):
-    def __init__(self, master_atk, master_def):
+    def __init__(self, master_atk, num_atk, master_def, num_def):
         DataLog.__init__(self)
         self.type = 'fight_info'
         self.master_atk = master_atk
         self.master_def = master_def
+        self.num_atk = num_atk
+        self.num_def = num_def
 
 
 class LogRoundInfo(DataLog):

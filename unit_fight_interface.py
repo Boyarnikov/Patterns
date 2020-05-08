@@ -39,7 +39,7 @@ class UnitFightInterface:
                 times += 1
         for i in range(times):
             if self.act_success(profs[act]):
-                self.logs.append(log.LogActionInfo('?master', act, unit.name))
+                self.logs.append(log.LogActionInfo('?master', unit.name, act))
                 if unit.feature == 'blessed':
                     self.handle_bless(unit.bless, act, unit.name)
 

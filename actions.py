@@ -10,6 +10,9 @@ class Act:
         else:
             raise ValueError("Неверный тип действия")
 
+    def __str__(self):
+        return 'ACT_'+self.type
+
 
 class Curse:
     types = EVENTS_TYPES

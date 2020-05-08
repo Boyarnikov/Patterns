@@ -33,7 +33,7 @@ class Association:
 
 
 class Group(Association):
-    starting_init_points = 3
+    starting_init_points = 1
 
     def __init__(self, master):
         self.master = str(master)

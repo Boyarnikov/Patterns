@@ -254,12 +254,7 @@ def test_unit_interface_base():
     s1 = u.set_status(s1, stat2)
     assert s1.get_statuses() == [stat1, stat2], 'Интерфейс некорректно запаковывает юнитов'
     s1 = u.set_status(s1, stat3)
-    try:
-        s1.get_statuses()
-    except AttributeError:
-        ...
-    else:
-        assert True, 'Интерфейс некорректно распаковывает юнитов'
+    s1.get_statuses()
     s1 = u.set_status(s1, stat3)
 
 
@@ -341,7 +336,7 @@ def run_tests():
     try:
         test_units()
         test_structures()
-        test_unit_interface_acts()
+        test_unit_interface()
     except Exception:
         print("Ошибка тестирования системы")
     else:
