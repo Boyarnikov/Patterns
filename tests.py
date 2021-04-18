@@ -1,7 +1,10 @@
-from creatures import *
+from units import *
+from unit_structures import *
+from status_decorators import *
+from unit_fight_interface import *
 
 
-def test_creatures_init_system(hp, shield):
+def test_units_init_system(hp, shield):
     unit = Unit()
     unit = Unit(10)
     unit = Unit(1, 0)
@@ -16,7 +19,7 @@ def test_creatures_init_system(hp, shield):
             ValueError("Существо с отрицательными щитами или неположительным здоровьем создано")
 
 
-def test_creatures_hit_system(hp, shield, hit, expected_hp, expected_shield, expected_is_dead):
+def test_units_hit_system(hp, shield, hit, expected_hp, expected_shield, expected_is_dead):
     for i in range(len(hp)):
         unit = Unit(hp[i], shield[i])
         unit.hit(hit[i])
@@ -25,16 +28,16 @@ def test_creatures_hit_system(hp, shield, hit, expected_hp, expected_shield, exp
         assert unit.is_dead() == expected_is_dead[i], "ошибка в рачёте смерти при ударе"
 
 
-def test_creatures_type_and_features_system():
+def test_units_type_and_features_system():
     unit = Unit()
     unit_type = set()
     unit_type.add(unit.type)
 
     soldiers = list()
-    soldiers.append(Soldier("Bob0", "MasterBob"))
-    soldiers.append(LeaderSoldier("Bob1", "MasterBob"))
-    soldiers.append(CursedSoldier("Bob2", "MasterBob"))
-    soldiers.append(BlessedSoldier("Bob3", "MasterBob"))
+    soldiers.append(Soldier("Bob0"))
+    soldiers.append(LeaderSoldier("Bob1"))
+    soldiers.append(CursedSoldier("Bob2"))
+    soldiers.append(BlessedSoldier("Bob3"))
     s_types, s_features = set(), set()
     for i in soldiers:
         s_types.add(i.type)
@@ -55,11 +58,11 @@ def test_creatures_type_and_features_system():
     assert (unit.type not in s_types), "Ошибка именования типов"
 
 
-def test_creatures_features_exceptions():
+def test_units_features_exceptions():
     s_types_with_features = [LeaderSoldier, CursedSoldier, BlessedSoldier]
     for s in s_types_with_features:
         try:
-            unit = s("Bob", "MasterBob", 1, 0, -1)
+            unit = s("Bob", 1, 0, -1)
         except ValueError:
             ...
         else:
@@ -74,10 +77,88 @@ def test_creatures_features_exceptions():
             raise ValueError("Тест на отрицательные фичи не выдал ошибок")
 
 
-def test_creatures():
+def test_act():
+    try:
+        act = Act('invalid')
+    except ValueError:
+        ...
+    else:
+        raise ValueError("Тест на отрицательные фичи не выдал ошибок")
+    test_subjects = [Bless, Curse]
+    for sub in test_subjects:
+        try:
+            try_sub = sub('invalid', 'invalid', 'invalid')
+        except ValueError:
+            ...
+        else:
+            raise ValueError("Тест на отрицательные фичи не выдал ошибок")
+
+
+def test_profs():
+    unit = Unit()
+    unit.set_profs(dict())
+
+    profs = unit.get_profs()
+    for i in profs.keys():
+        assert profs[i] == 0, 'Базовый параметр професиональности не нулевой'
+    profs = dict(zip(ACT_TYPES, [1 for i in range(len(ACT_TYPES))]))
+    unit.set_profs(profs)
+
+    stats = [[j for i in range(len(ACT_TYPES))] for j in [-1, 2, 'a']]
+
+    for stat in stats:
+        try:
+            profs = dict(zip(ACT_TYPES, stat))
+            unit.set_profs(profs)
+        except ValueError:
+            ...
+        except TypeError:
+            ...
+        else:
+            raise ValueError("Тест на некорректные значения не выдал ошибок")
+
+
+def test_status_decorator():
+    unit1 = Unit(10, 10)
+    decorated = StatusDecorator(unit1)
+    assert isinstance(decorated, StatusDecorator), 'Ошибка обёртки в декоратор статуса'
+    unit2 = decorated.redecorate()
+    assert isinstance(unit2, type(unit1)), 'Ошибка развёртки декоратора статуса'
+    assert unit2 == unit1, 'Ошибка развёртки декоратора статуса'
+
+    unit1 = Unit(10, 10)
+    profs1 = dict(zip(ACT_TYPES, [0.5 for i in range(len(ACT_TYPES))]))
+    unit1.set_profs(profs1)
+    unit1 = StatusExhausted(unit1)
+    unit1 = StatusWeakened(unit1)
+    profs2 = dict(zip(ACT_TYPES, [0.5 for i in range(len(ACT_TYPES))]))
+    profs2['atk'] = 0.25
+    profs2['def'] = 0.25
+    unit2.set_profs(profs2)
+    assert unit1.get_profs() == unit2.get_profs(), 'Ошибка пересчёта професианализма внутри декораторов'
+
+    unit1 = Unit(10, 10)
+    profs1 = dict(zip(ACT_TYPES, [0.5 for i in range(len(ACT_TYPES))]))
+    unit1.set_profs(profs1)
+    unit1 = StatusStronger(unit1)
+    unit1 = StatusProtected(unit1)
+    profs2 = dict(zip(ACT_TYPES, [0.5 for i in range(len(ACT_TYPES))]))
+    profs2['atk'] = 0.75
+    profs2['def'] = 0.75
+    unit2.set_profs(profs2)
+    assert unit1.get_profs() == unit2.get_profs(), 'Ошибка пересчёта професианализма внутри декораторов'
+
+    unit1 = Unit(10, 10)
+    unit2 = StatusInvincible(unit1)
+    unit2.hit(100000)
+    unit2 = unit2.redecorate()
+    assert unit1 == unit2, 'Ошибка пересчёта професианализма внутри декораторов'
+
+
+def test_unit_base():
     hp = [0, 0, -100, 69, 42]
     shield = [0, 100, 0, -1, -100]
-    test_creatures_init_system(hp, shield)
+    test_units_init_system(hp, shield)
 
     hp = [10, 123, 1000, 69, 1]
     shield = [100, 0, 0, 42, 0]
@@ -85,16 +166,177 @@ def test_creatures():
     expected_hp = [10, 1, 999, 69, 0]
     expected_shield = [100, 0, 0, 29, 0]
     expected_is_dead = [False, False, False, False, True]
-    test_creatures_hit_system(hp, shield, hit, expected_hp, expected_shield, expected_is_dead)
+    test_units_hit_system(hp, shield, hit, expected_hp, expected_shield, expected_is_dead)
 
-    test_creatures_type_and_features_system()
 
-    test_creatures_features_exceptions()
+def test_units():
+    test_unit_base()
+
+    test_units_type_and_features_system()
+
+    test_units_features_exceptions()
+
+    test_act()
+
+    test_profs()
+
+    test_status_decorator()
+
+
+def test_structures_groups():
+    g = Group('Master')
+    i_points = g.init_points
+    unit1 = LeaderSoldier('Bob1', 1, 1, 10)
+    g.add_item(unit1)
+    assert g.init_points - i_points == 10, 'Ошибка подсчёта очков инициативы группы'
+    g.add_item(unit1)
+    assert g.init_points - i_points == 20, 'Ошибка подсчёта очков инициативы группы'
+    g.add_item(unit1)
+    assert g.init_points - i_points == 30, 'Ошибка подсчёта очков инициативы группы'
+    g.remove_item(unit1)
+    assert g.init_points - i_points == 20, 'Ошибка подсчёта очков инициативы группы'
+    g.remove_index(0)
+    assert g.init_points - i_points == 10, 'Ошибка подсчёта очков инициативы группы'
+    unit1.hit(100000)
+    g.clear_dead()
+    assert g.is_dead(), 'Ошибка проверки гибели команды'
+    assert g.init_points - i_points == 0, 'Ошибка подсчёта очков инициативы группы'
+
+
+def test_structures_armies():
+    a = Army()
+    g1 = Group('Master1')
+    g2 = Group('Master2')
+    g2.add_item(LeaderSoldier('Bob1', 1, 1, 10))
+    a.add_item(g1)
+    a.add_item(g2)
+    a.clear_dead()
+    assert len(a.items) == 1, 'Ошибка отчистки пустых отрядов'
+    u = g2.items[0]
+    u.hit(100000000)
+    a.clear_dead()
+    assert a.is_dead(), 'Ошибка рекурсивной отчистки пустых отрядов'
+
+
+def test_structures():
+    test_structures_groups()
+    test_structures_armies()
+
+
+def test_unit_interface_base():
+    name = 'Bob1'
+    logs = list()
+    s1 = Soldier(name, 2, 0)
+    u = UnitFightInterface()
+
+    logs.extend(u.hit(s1, 1))
+    assert s1.hp == 1, "Ошибка интерфейса базового урона"
+    logs.extend(u.shield(s1, 1))
+    assert s1.shield == 1, "Ошибка интерфейса базовых щитов"
+    logs.extend(u.hit(s1, -2))
+    assert s1.hp == 2, "Ошибка интерфейса базового лечения"
+    assert len(logs) == 0, "Ошибка базовых сеттеров, не пустой пул от комманд, которые не должны возвращать логи"
+    logs.extend(u.hit(s1, 10))
+    assert len(logs) == 1, "Интерфейс не вернул лог смерти"
+    assert logs[0].name == name and logs[0].type == 'death_info', "Интерфейс вернул неверный лог смерти"
+    logs.extend(u.hit(s1, -2000))
+    assert s1.hp == 0, 'Интерфейс взаимодействует с "мёртвыми" юнитами'
+
+    name = 'Bob1'
+    s1 = Soldier(name, 2, 0)
+    u = UnitFightInterface()
+    stat1 = 'weakened'
+    stat2 = 'exhausted'
+    stat3 = 'none'
+
+    s1 = u.set_status(s1, stat1)
+    assert s1.get_statuses() == [stat1], 'Интерфейс некорректно запаковывает юнитов'
+    s1 = u.set_status(s1, stat2)
+    assert s1.get_statuses() == [stat1, stat2], 'Интерфейс некорректно запаковывает юнитов'
+    s1 = u.set_status(s1, stat3)
+    s1.get_statuses()
+    s1 = u.set_status(s1, stat3)
+
+
+def test_unit_interface_acts():
+    u = UnitFightInterface()
+    name = 'Bob1'
+    s1 = Soldier(name, 3, 0)
+
+    logs = u.get_act_atk(s1)
+    assert len(logs) == 0, "Некорректный лист логов"
+    logs = u.get_act_def(s1)
+    assert len(logs) == 0, "Некорректный лист логов"
+
+    s1.set_atk(['atk', 'atk', 'def', 'heal'])
+    s1.set_def(['atk', 'heal', 'def'])
+    logs = u.get_act_atk(s1)
+    assert len(logs) == 0, "Некорректный лист логов"
+    logs = u.get_act_def(s1)
+    assert len(logs) == 0, "Некорректный лист логов"
+
+    s1.set_profs(dict(zip(['atk'], [1])))
+    logs = u.get_act_atk(s1)
+    assert len(logs) == 2 and logs[0].act == 'atk' and logs[1].act == 'atk', "Некорректный лист логов"
+    logs = u.get_act_def(s1)
+    assert len(logs) == 1 and logs[0].act == 'atk', "Некорректный лист логов"
+
+    s1.set_profs(dict(zip(['atk', 'def', 'heal'], [1, 1, 1])))
+    logs = u.get_act_atk(s1)
+    assert len(logs) == 4 and logs[2].act == 'def' and logs[3].act == 'heal', "Некорректный лист логов"
+    logs = u.get_act_def(s1)
+    assert len(logs) == 3 and logs[2].act == 'def' and logs[1].act == 'heal', "Некорректный лист логов"
+
+
+def test_unit_interface_curse_and_bless():
+
+    u = UnitFightInterface()
+    cs = CursedSoldier('Bob', 3, 0)
+    bs = BlessedSoldier('Bob', 3, 0)
+
+    cs.set_curse(Curse('damaged', 'hit', 'self'))
+    logs = u.hit(cs, 1)
+    assert len(logs) == 1 and logs[0].type == 'hit_info' and logs[0].whom == '?self', "Некорректный лист логов"
+
+    cs.set_curse(Curse('healed', 'weakened', 'all'))
+    logs = u.hit(cs, -1)
+    assert len(logs) == 1 and logs[0].type == 'status_info' and logs[0].whom == '?all', "Некорректный лист логов"
+
+    logs = u.shield(cs, 1000)
+
+    cs.set_curse(Curse('damaged', 'hit', 'self'))
+    logs = u.hit(cs, 1)
+    assert len(logs) == 0, "Триггер удара сработал, не смотря на поглощение урона щитами"
+
+    cs.set_curse(Curse('healed', 'weakened', 'all'))
+    logs = u.hit(cs, -1)
+    assert len(logs) == 0, "Триггер лечения сработал, не смотря на потолок в полное здоровье"
+
+    bs.set_bless(Bless('atk', 'heal', 'self'))
+    bs.set_atk(['atk', 'def'])
+    bs.set_profs(dict(zip(['atk'], [1])))
+    bs.luck = 1
+
+    logs = u.get_act_atk(bs)
+    assert len(logs) == 2 and logs[1].type == 'hit_info' and logs[1].whom == '?self', "Некорректный лист логов"
+
+    bs.set_bless(Bless('def', 'heal', 'self'))
+
+    logs = u.get_act_atk(bs)
+    assert len(logs) == 1, "Некорректный лист логов"
+
+
+def test_unit_interface():
+    test_unit_interface_acts()
+    test_unit_interface_base()
+    test_unit_interface_curse_and_bless()
 
 
 def run_tests():
     try:
-        test_creatures()
+        test_units()
+        test_structures()
+        test_unit_interface()
     except Exception:
         print("Ошибка тестирования системы")
     else:
